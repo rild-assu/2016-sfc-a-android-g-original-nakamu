@@ -20,19 +20,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         gameView = new GameView(getApplicationContext());
         setContentView(gameView);
-//        sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
     }
+
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-//        if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-//            Log.d("SensorValues","\nX軸:"+event.values[0]+
-//                                 "\nX軸:"+event.values[1]+
-//                                 "\nX軸:"+event.values[2]);
-//            if(gameView.player != null){
-//                gameView.player.move(-event.values[0]);
-//            }
-//        }
+        Log.d("SensorValues","STATE CHANGED");
+        if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+            Log.d("SensorValues","\nX軸:"+event.values[0]+
+                                 "\nY軸:"+event.values[1]+
+                                 "\nZ軸:"+event.values[2]);
+            if(gameView.player != null){
+                gameView.player.move(-event.values[1]);
+            }
+        }
     }
 
     @Override
@@ -43,15 +45,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onResume() {
         super.onResume();
-//        List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
-//        if(!sensors.isEmpty()){
-//            sensorManager.registerListener(this,sensors.get(0),SensorManager.SENSOR_DELAY_FASTEST);
-//        }
+        List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        if(!sensors.isEmpty()){
+            sensorManager.registerListener(this,sensors.get(0),SensorManager.SENSOR_DELAY_FASTEST);
+        }
     }
 
     @Override
     protected void onPause() {
-//        sensorManager.unregisterListener(this);
+        sensorManager.unregisterListener(this);
         super.onPause();
     }
 }

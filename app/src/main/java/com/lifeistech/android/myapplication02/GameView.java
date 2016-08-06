@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -26,13 +27,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     Bitmap presentImage;
     Player player;
     Bitmap playerImage;
+    Bitmap backgroundImage;
+    int score = 0;
+    int life = 3;
 
     public GameView(Context context) {
         super(context);
         getHolder().addCallback(this);
         Resources resources = context.getResources();
-        presentImage = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher);
-        if (presentImage == null) Log.d("GameView", "nullだよ");
+        backgroundImage = BitmapFactory.decodeResource(resources, R.drawable.background_image);
+        presentImage = BitmapFactory.decodeResource(resources, R.drawable.present_image);
         playerImage = BitmapFactory.decodeResource(resources, R.drawable.player_image);
     }
 
@@ -40,15 +44,34 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     public void run() {
         player = new Player();
         present = new Present();
+        Paint textPaint = new Paint();
+        textPaint.setColor(Color.WHITE);
+        textPaint.setFakeBoldText(true);
+        textPaint.setTextSize(50);
         while (thread != null) {
             Canvas canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.WHITE);
+            canvas.drawBitmap(backgroundImage, 0, 0, null);
             canvas.drawBitmap(presentImage, present.x, present.y, null);
             canvas.drawBitmap(playerImage, player.x, player.y, null);
-            if (present.y > screenHeight) {
+            if (player.isEnter(present)) {
                 present.reset();
+                score += 10;
+            } else if (present.y > screenHeight) {
+                present.reset();
+                life--;
             } else {
                 present.update();
+            }
+            canvas.drawText("SCORE:" + score, 50, 150, textPaint);
+            canvas.drawText("LIFE:" + life, 50, 300, textPaint);
+            if (life <= 0) {
+                canvas.drawText("Game Over", screenWidth / 6, screenHeight / 2, textPaint);
+                surfaceHolder.unlockCanvasAndPost(canvas);
+                break;
+            }
+            if (score % 100 == 0 && score != 0) {
+                present.speed += 0.1f;
             }
 
             surfaceHolder.unlockCanvasAndPost(canvas);
@@ -58,6 +81,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            Log.d("speed" + present.speed, "");
         }
     }
 
@@ -67,6 +91,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
 
         float x, y;
 
+        float speed = 14.0f;
+
         public Present() {
             Random random = new Random();
             x = random.nextInt(screenWidth - WIDTH);
@@ -74,7 +100,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
         }
 
         public void update() {
-            y += 15.0f;
+            y += speed;
         }
 
         public void reset() {
@@ -96,9 +122,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
         }
 
         public void move(float diffX) {
-            this.x += diffX;
+            this.x += diffX * 1.2;
             this.x = Math.max(0, x);
             this.x = Math.min(screenWidth - WIDTH, x);
+        }
+
+        public boolean isEnter(Present present) {
+            if (present.x + Present.WIDTH > x && present.x < x + WIDTH &&
+                    present.y + Present.HEIGHT > y && present.y < y + HEIGHT) {
+                return true;
+            }
+            return false;
         }
     }
 
@@ -113,12 +147,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         screenWidth = width;
         screenHeight = height;
+        if (screenWidth > 0 && screenHeight > 0) {
+            backgroundImage = Bitmap.createScaledBitmap(backgroundImage, screenWidth, screenHeight, true);
+        }
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         thread = null;
     }
-
 
 }
