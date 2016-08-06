@@ -31,8 +31,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
         super(context);
         getHolder().addCallback(this);
         Resources resources = context.getResources();
-        presentImage = BitmapFactory.decodeResource(resources, R.drawable.present_image);
-        Log.d("GameView","After:" + presentImage.toString());
+        presentImage = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher);
+        if (presentImage == null) Log.d("GameView", "nullだよ");
         playerImage = BitmapFactory.decodeResource(resources, R.drawable.player_image);
     }
 
@@ -44,13 +44,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback, Run
             Canvas canvas = surfaceHolder.lockCanvas();
             canvas.drawColor(Color.WHITE);
             canvas.drawBitmap(presentImage, present.x, present.y, null);
-            canvas.drawBitmap(playerImage,player.x,player.y,null);
+            canvas.drawBitmap(playerImage, player.x, player.y, null);
             if (present.y > screenHeight) {
                 present.reset();
             } else {
                 present.update();
             }
+
             surfaceHolder.unlockCanvasAndPost(canvas);
+
             try {
                 Thread.sleep(FRAME_TIME);
             } catch (InterruptedException e) {
